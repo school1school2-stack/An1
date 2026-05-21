@@ -3,45 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختصر الروابط والـ QR - ثانوية الأمير عبدالمجيد</title>
-    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <title>مختصر الروابط السريع والـ QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --school-red: #ba0000;
+            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد للتوقيع */
             --bg-color: #f8fafc;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg-color);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0;
         }
+
         .container {
-            background: white; padding: 2.5rem; border-radius: 25px;
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-            width: 90%; max-width: 420px; text-align: center;
+            width: 90%; 
+            max-width: 400px; 
+            text-align: center;
         }
+
+        h2 { color: #1e293b; margin-bottom: 5px; }
+        .sub-title { color: #64748b; margin-bottom: 25px; font-size: 0.95rem; }
+
         input {
-            width: 100%; padding: 15px; border: 2px solid #e2e8f0;
-            border-radius: 12px; margin-bottom: 20px; font-size: 1rem;
-            text-align: left; direction: ltr; outline: none;
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #e2e8f0;
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            font-size: 1rem;
+            text-align: left; 
+            direction: ltr; 
+            outline: none;
+            box-sizing: border-box;
         }
+
         .btn {
-            background: var(--primary-blue); color: white; border: none;
-            padding: 14px; border-radius: 10px; cursor: pointer;
-            width: 100%; font-weight: bold; font-size: 1rem; margin-bottom: 10px;
-            transition: all 0.3s ease;
+            background: var(--primary-blue); 
+            color: white; 
+            border: none;
+            padding: 14px; 
+            border-radius: 10px; 
+            cursor: pointer;
+            width: 100%; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            margin-bottom: 10px;
+            transition: background 0.3s ease;
         }
-        #resultArea { margin-top: 25px; display: none; }
-        #canvas-container { 
-            background: white; padding: 15px; 
-            display: inline-block; border-radius: 20px;
-            border: 1px solid #f1f5f9;
+        .btn:hover { background: #0a3c8c; }
+
+        #resultArea { 
+            margin-top: 25px; 
+            display: none; 
         }
+
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+            margin: 20px 0;
+            padding: 10px;
+            background: white;
+        }
+
+        #qrcode img {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .short-url-text {
+            margin: 15px 0; 
+            font-weight: bold; 
+            color: #2563eb; 
+            font-size: 1.05rem; 
+            word-break: break-all;
+        }
+
         .signature {
-            margin-top: 25px; font-weight: bold; color: var(--school-red);
+            margin-top: 25px; 
+            font-weight: bold; 
+            color: var(--matte-red);
             font-size: 0.9rem;
         }
     </style>
@@ -49,18 +102,19 @@
 <body>
 
 <div class="container">
-    <h2 style="color: #1e293b; margin-bottom: 5px;">مختصر الروابط والـ QR</h2>
-    <p style="color: #64748b; margin-bottom: 25px;">ثانوية الأمير عبدالمجيد</p>
+    <h2>مختصر الروابط والـ QR 🔗</h2>
+    <p class="sub-title">ثانوية الأمير عبدالمجيد</p>
 
     <input type="url" id="longUrl" placeholder="ضع الرابط الطويل هنا..." required>
-    <button class="btn" onclick="generateShortAndQR()">توليد الرابط والرمز المدمج</button>
+    <button class="btn" onclick="generateShortAndNormalQR()">اختصار وتوليد الرمز</button>
 
     <div id="resultArea">
-        <div id="canvas-container"></div>
-        <div id="shortUrl" style="margin: 15px 0; font-weight: bold; color: #2563eb; font-size: 1rem; word-break: break-all;"></div>
+        <div id="qrcode"></div>
+        
+        <div id="shortUrl" class="short-url-text"></div>
         
         <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط المختصر</button>
-        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">تحميل الرمز المنقوش</button>
+        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">حفظ صورة الرمز</button>
     </div>
 
     <div class="signature">
@@ -69,14 +123,14 @@
 </div>
 
 <script>
-    let qrCode;
+    let qrContainer = null;
 
-    async function generateShortAndQR() {
+    async function generateShortAndNormalQR() {
         const urlInput = document.getElementById('longUrl').value.trim();
-        if (!urlInput) return alert("فضلاً وضع الرابط أولاً");
+        if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
 
         try {
-            // جلب الرابط المختصر من سيرفر TinyURL الثابت والمفتوح
+            // استخدام سيرفر TinyURL المفتوح والمستقر لتجنب مشاكل الحظر والأخطاء
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlInput)}`);
             if (!res.ok) throw new Error();
             const shortLink = await res.text();
@@ -84,54 +138,21 @@
             document.getElementById('shortUrl').innerText = shortLink;
             document.getElementById('resultArea').style.display = 'block';
 
-            // رسم شعارك الدائري الفخم برمجياً لحل مشكلة عدم ظهور الـ QR نهائياً
-            const svgLogo = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
-                    <circle cx="75" cy="75" r="70" fill="#0d47a1" stroke="#ffffff" stroke-width="4"/>
-                    <circle cx="75" cy="75" r="62" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="4"/>
-                    <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="11" fill="#ffffff">
-                        ثانوية الأمير
-                    </text>
-                    <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="11" fill="#ffffff">
-                        عبدالمجيد
-                    </text>
-                </svg>
-            `);
-
-            // بناء وتوليد الـ QR بالنقاط المستديرة الاحترافية
-            qrCode = new QRCodeStyling({
-                width: 280,
-                height: 280,
-                type: "svg", // استخدام SVG لضمان القوة والظهور الفوري
-                data: shortLink,
-                image: svgLogo,
-                dotsOptions: {
-                    color: "#000000",
-                    type: "extra-rounded" // نقاط مستديرة ومنقوشة احترافية
-                },
-                backgroundOptions: { color: "#ffffff" },
-                imageOptions: {
-                    crossOrigin: "anonymous",
-                    margin: 2,
-                    imageSize: 0.45 // حجم مثالي يتوسط الرمز بدقة ويعطيه طابع LinkedIn
-                },
-                cornersSquareOptions: {
-                    type: "extra-rounded",
-                    color: "#000000"
-                },
-                cornersDotOptions: {
-                    type: "dot",
-                    color: "#000000"
-                },
-                qrOptions: { errorCorrectionLevel: "H" }
+            // مسح أي رمز سابق وتوليد رمز QR عادي كلاسيكي تماماً
+            const qrDiv = document.getElementById("qrcode");
+            qrDiv.innerHTML = "";
+            
+            qrContainer = new QRCode(qrDiv, {
+                text: shortLink,
+                width: 200,
+                height: 200,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
             });
 
-            const holder = document.getElementById("canvas-container");
-            holder.innerHTML = "";
-            qrCode.append(holder);
-
         } catch (e) {
-            alert("عذراً، فشل التوليد. تأكد من جودة الإنترنت وحاول مجدداً.");
+            alert("عذراً، فشل جلب الرابط المختصر. تحقق من اتصالك بالإنترنت وحاول مجدداً.");
         }
     }
 
@@ -143,8 +164,21 @@
     }
 
     function downloadQR() {
-        qrCode.download({ name: "School_QR_Prince_Abdulmajeed", extension: "png" });
+        const img = document.querySelector('#qrcode img');
+        if (img) {
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = 'QR_Code.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert("يرجى توليد الرمز أولاً");
+        }
     }
+
+    // كود الارتباط الشرطي لحماية الملكية الفكرية في الكونسول
+    console.log("الملكية الفكرية: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
 </script>
 
 </body>
