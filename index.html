@@ -9,7 +9,7 @@
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد */
+            --school-red: #ba0000;
             --bg-color: #f8fafc;
         }
         body {
@@ -41,7 +41,7 @@
             border: 1px solid #f1f5f9;
         }
         .signature {
-            margin-top: 25px; font-weight: bold; color: var(--matte-red);
+            margin-top: 25px; font-weight: bold; color: var(--school-red);
             font-size: 0.9rem;
         }
     </style>
@@ -70,15 +70,13 @@
 
 <script>
     let qrCode;
-    // اسم ملف شعارك المرفوع بجانب الـ index.html
-    const logoUrl = "logo.png"; 
 
     async function generateShortAndQR() {
         const urlInput = document.getElementById('longUrl').value.trim();
-        if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
+        if (!urlInput) return alert("فضلاً وضع الرابط أولاً");
 
         try {
-            // استخدام خوادم TinyURL الثابتة لتفادي حظر وسقوط السيرفر القديم
+            // جلب الرابط المختصر من سيرفر TinyURL الثابت والمفتوح
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlInput)}`);
             if (!res.ok) throw new Error();
             const shortLink = await res.text();
@@ -86,21 +84,36 @@
             document.getElementById('shortUrl').innerText = shortLink;
             document.getElementById('resultArea').style.display = 'block';
 
-            // رسم الـ QR بنقاط مستديرة عصرية مدمجة مع الشعار
+            // رسم شعارك الدائري الفخم برمجياً لحل مشكلة عدم ظهور الـ QR نهائياً
+            const svgLogo = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+                    <circle cx="75" cy="75" r="70" fill="#0d47a1" stroke="#ffffff" stroke-width="4"/>
+                    <circle cx="75" cy="75" r="62" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="4"/>
+                    <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="11" fill="#ffffff">
+                        ثانوية الأمير
+                    </text>
+                    <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="11" fill="#ffffff">
+                        عبدالمجيد
+                    </text>
+                </svg>
+            `);
+
+            // بناء وتوليد الـ QR بالنقاط المستديرة الاحترافية
             qrCode = new QRCodeStyling({
                 width: 280,
                 height: 280,
+                type: "svg", // استخدام SVG لضمان القوة والظهور الفوري
                 data: shortLink,
-                image: logoUrl,
+                image: svgLogo,
                 dotsOptions: {
                     color: "#000000",
-                    type: "extra-rounded" // نقاط مستديرة ومنقوشة مثل الهويات الاحترافية
+                    type: "extra-rounded" // نقاط مستديرة ومنقوشة احترافية
                 },
                 backgroundOptions: { color: "#ffffff" },
                 imageOptions: {
                     crossOrigin: "anonymous",
-                    margin: 4,
-                    imageSize: 0.45 // حجم مثالي يتوسط الرمز بدقة
+                    margin: 2,
+                    imageSize: 0.45 // حجم مثالي يتوسط الرمز بدقة ويعطيه طابع LinkedIn
                 },
                 cornersSquareOptions: {
                     type: "extra-rounded",
@@ -110,7 +123,7 @@
                     type: "dot",
                     color: "#000000"
                 },
-                qrOptions: { errorCorrectionLevel: "H" } // أعلى مستوى حماية لقراءة الكاميرا فوراً
+                qrOptions: { errorCorrectionLevel: "H" }
             });
 
             const holder = document.getElementById("canvas-container");
@@ -118,7 +131,7 @@
             qrCode.append(holder);
 
         } catch (e) {
-            alert("عذراً، فشل الاتصال بمحرك الاختصار. تأكد من جودة الإنترنت وحاول مجدداً.");
+            alert("عذراً، فشل التوليد. تأكد من جودة الإنترنت وحاول مجدداً.");
         }
     }
 
