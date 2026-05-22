@@ -3,64 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختصر الروابط والـ QR الخاص - ثانوية الأمير عبدالمجيد</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
+    <title>مختصر الروابط السريع والـ QR الثابت</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lzma/2.3.2/lzma_worker-min.js"></script>
 
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --matte-red: #c0392b;
+            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد */
             --bg-color: #f8fafc;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg-color);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0;
         }
+
         .container {
-            background: white; padding: 2.5rem; border-radius: 20px;
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-            width: 90%; max-width: 400px; text-align: center;
+            width: 90%; 
+            max-width: 400px; 
+            text-align: center;
         }
+
         input {
-            width: 100%; padding: 14px; border: 2px solid #e2e8f0;
-            border-radius: 10px; margin-bottom: 20px; font-size: 1rem;
-            text-align: left; direction: ltr; outline: none; box-sizing: border-box;
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #e2e8f0;
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            font-size: 1rem;
+            text-align: left; 
+            direction: ltr; 
+            outline: none;
+            box-sizing: border-box;
         }
+
         .btn {
-            background: var(--primary-blue); color: white; border: none;
-            padding: 14px; border-radius: 10px; cursor: pointer;
-            width: 100%; font-weight: bold; font-size: 1rem; margin-bottom: 10px;
+            background: var(--primary-blue); 
+            color: white; 
+            border: none;
+            padding: 14px; 
+            border-radius: 10px; 
+            cursor: pointer;
+            width: 100%; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            margin-bottom: 10px;
             transition: background 0.3s ease;
         }
         .btn:hover { background: #0a3c8c; }
+
         #resultArea { margin-top: 25px; display: none; }
-        #qrcode { display: flex; justify-content: center; margin: 20px 0; }
-        #qrcode img { border: 1px solid #e2e8f0; padding: 8px; border-radius: 8px; }
-        .short-url-text { margin: 15px 0; font-weight: bold; color: #2563eb; font-size: 1rem; word-break: break-all; direction: ltr; text-align: left; }
-        .signature { margin-top: 25px; font-weight: bold; color: var(--matte-red); font-size: 0.9rem; }
+
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+            margin: 20px 0;
+        }
+        #qrcode img {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .short-url-text {
+            margin: 15px 0; 
+            font-weight: bold; 
+            color: #2563eb; 
+            font-size: 0.95rem; 
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .signature {
+            margin-top: 25px; 
+            font-weight: bold; 
+            color: var(--matte-red);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>مختصر الروابط والسيرفر الخاص 🔗</h2>
-    <p style="color: #64748b; margin-bottom: 25px;">ثانوية الأمير عبدالمجيد</p>
+    <h2>مختصر الروابط والـ QR الذكي 🔗</h2>
+    <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">ثانوية الأمير عبدالمجيد</p>
 
     <input type="url" id="longUrl" placeholder="ضع الرابط الطويل هنا..." required>
-    <button class="btn" onclick="shortenWithFirebase()">اختصار وتوليد الرمز</button>
+    <button class="btn" onclick="compressAndGenerate()">اختصار وتوليد الرمز فورا</button>
 
     <div id="resultArea">
         <div id="qrcode"></div>
         <div id="shortUrl" class="short-url-text"></div>
         
-        <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط</button>
-        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">حفظ الرمز</button>
+        <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط المختصر</button>
+        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">حفظ صورة الرمز</button>
     </div>
 
     <div class="signature">
@@ -69,79 +116,57 @@
 </div>
 
 <script>
-    // ⚠️ ضع إعدادات Firebase الخاصة بمشروعك هنا لكي يعمل الكود بنجاح:
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-    
-    // بدء تشغيل Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // توليد معرف قصير جداً وفريد (3 إلى 4 أحرف)
-    function generateShortId() {
-        return Math.random().toString(36).substring(2, 6);
+    // محرك التوجيه الذكي: يشتغل فوراً عند فتح الرابط المختصر المضغوط
+    window.onload = function() {
+        const hash = window.location.hash;
+        if (hash && hash.length > 2) {
+            try {
+                const base64 = hash.substring(2);
+                const bytes = atob(base64).split('').map(c => c.charCodeAt(0));
+                LZMA.decompress(bytes, function(result, error) {
+                    if (result && (result.startsWith('http://') || result.startsWith('https://'))) {
+                        window.location.replace(result);
+                    }
+                });
+            } catch (e) {
+                console.error("خطأ في فك ضغط الرابط الأصلي.");
+            }
+        }
     }
 
-    function shortenWithFirebase() {
+    function compressAndGenerate() {
         const urlInput = document.getElementById('longUrl').value.trim();
         if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
 
-        const shortId = generateShortId();
-        const currentUrl = window.location.href.split('?')[0];
-        const finalShortLink = `${currentUrl}?id=${shortId}`;
+        // ضغط الرابط محلياً بالكامل دون أي اتصال بسيرفر خارجي
+        LZMA.compress(urlInput, 9, function(result, error) {
+            if (error) return alert("حدث خطأ أثناء معالجة الرابط.");
+            
+            const base64 = btoa(String.fromCharCode.apply(null, result));
+            const currentUrl = window.location.href.split('#')[0].split('?')[0];
+            const finalShortLink = `${currentUrl}#/${base64}`;
 
-        // حفظ الرابط الطويل في السيرفر الخاص بك تحت المعرف القصير
-        database.ref('urls/' + shortId).set({
-            longUrl: urlInput
-        }, (error) => {
-            if (error) {
-                alert("فشل الحفظ في السيرفر الخاص بك.");
-            } else {
-                // إظهار النتائج ورسم الـ QR المضمون
-                document.getElementById('shortUrl').innerText = finalShortLink;
-                document.getElementById('resultArea').style.display = 'block';
+            // عرض النتائج
+            document.getElementById('shortUrl').innerText = finalShortLink;
+            document.getElementById('resultArea').style.display = 'block';
 
-                const qrDiv = document.getElementById("qrcode");
-                qrDiv.innerHTML = "";
-                new QRCode(qrDiv, {
-                    text: finalShortLink,
-                    width: 200,
-                    height: 200,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
-                });
-            }
-        });
-    }
-
-    // محرك التوجيه فوري القراءة من السيرفر الخاص بك
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id');
-        
-        if (idParam) {
-            database.ref('urls/' + idParam).once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (data && data.longUrl) {
-                    window.location.replace(data.longUrl);
-                } else {
-                    alert("عذراً، هذا الرابط غير مسجل في نظام المدرسة أو انتهت صلاحيته.");
-                }
+            // رسم الـ QR Code التقليدي العادي فوراً وبثبات كامل
+            const qrDiv = document.getElementById("qrcode");
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+                text: finalShortLink,
+                width: 200,
+                height: 200,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.L // مستوى خفيف ليناسب الاختصار المضغوط ويظهر فوراً
             });
-        }
+        });
     }
 
     function copyLink() {
         navigator.clipboard.writeText(document.getElementById('shortUrl').innerText);
-        alert("تم النسخ بنجاح!");
+        alert("تم نسخ الرابط بنجاح!");
     }
 
     function downloadQR() {
@@ -149,10 +174,12 @@
         if (img) {
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = 'QR_Code_Private.png';
+            link.download = 'QR_Code_Normal.png';
             link.click();
         }
     }
+
+    console.log("الارتباط الشرطي وحماية الملكية: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
 </script>
 
 </body>
