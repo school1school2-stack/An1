@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختصر الروابط السريع والـ QR</title>
+    <title>مختصر الروابط السريع والـ QR الخاص</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد للتوقيع */
+            --matte-red: #c0392b; /* اللون الأحمر المطفي للتوقيع */
             --bg-color: #f8fafc;
         }
 
@@ -32,9 +32,6 @@
             max-width: 400px; 
             text-align: center;
         }
-
-        h2 { color: #1e293b; margin-bottom: 5px; }
-        .sub-title { color: #64748b; margin-bottom: 25px; font-size: 0.95rem; }
 
         input {
             width: 100%; 
@@ -64,19 +61,13 @@
         }
         .btn:hover { background: #0a3c8c; }
 
-        #resultArea { 
-            margin-top: 25px; 
-            display: none; 
-        }
+        #resultArea { margin-top: 25px; display: none; }
 
         #qrcode { 
             display: flex; 
             justify-content: center; 
             margin: 20px 0;
-            padding: 10px;
-            background: white;
         }
-
         #qrcode img {
             border: 1px solid #e2e8f0;
             padding: 8px;
@@ -87,8 +78,10 @@
             margin: 15px 0; 
             font-weight: bold; 
             color: #2563eb; 
-            font-size: 1.05rem; 
+            font-size: 1rem; 
             word-break: break-all;
+            direction: ltr;
+            text-align: left;
         }
 
         .signature {
@@ -102,15 +95,14 @@
 <body>
 
 <div class="container">
-    <h2>مختصر الروابط والـ QR 🔗</h2>
-    <p class="sub-title">ثانوية الأمير عبدالمجيد</p>
+    <h2>مختصر الروابط الخاص بك 🔗</h2>
+    <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">ثانوية الأمير عبدالمجيد</p>
 
     <input type="url" id="longUrl" placeholder="ضع الرابط الطويل هنا..." required>
-    <button class="btn" onclick="generateShortAndNormalQR()">اختصار وتوليد الرمز</button>
+    <button class="btn" onclick="makePrivateShortUrl()">اختصار وتوليد الرمز فوراً</button>
 
     <div id="resultArea">
         <div id="qrcode"></div>
-        
         <div id="shortUrl" class="short-url-text"></div>
         
         <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط المختصر</button>
@@ -123,44 +115,61 @@
 </div>
 
 <script>
-    let qrContainer = null;
+    // دالة لتوليد كود قصير وفريد محلياً
+    function generateId() {
+        return Math.random().toString(36).substring(2, 7);
+    }
 
-    async function generateShortAndNormalQR() {
+    function makePrivateShortUrl() {
         const urlInput = document.getElementById('longUrl').value.trim();
         if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
 
-        try {
-            // استخدام سيرفر TinyURL المفتوح والمستقر لتجنب مشاكل الحظر والأخطاء
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlInput)}`);
-            if (!res.ok) throw new Error();
-            const shortLink = await res.text();
+        // استخراج الرابط الأساسي للموقع الخاص بك على GitHub Pages
+        const currentUrl = window.location.href.split('#')[0].split('?')[0];
+        
+        // توليد معرف قصير للرابط
+        const shortId = generateId();
+        
+        // حفظ الرابط الطويل في ذاكرة المتصفح المحلية بربطه بالمعرف القصير
+        localStorage.setItem(shortId, urlInput);
 
-            document.getElementById('shortUrl').innerText = shortLink;
-            document.getElementById('resultArea').style.display = 'block';
+        // الرابط المختصر الخاص بموقعك تماماً
+        const finalShortLink = `${currentUrl}?id=${shortId}`;
 
-            // مسح أي رمز سابق وتوليد رمز QR عادي كلاسيكي تماماً
-            const qrDiv = document.getElementById("qrcode");
-            qrDiv.innerHTML = "";
-            
-            qrContainer = new QRCode(qrDiv, {
-                text: shortLink,
-                width: 200,
-                height: 200,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
-            });
+        document.getElementById('shortUrl').innerText = finalShortLink;
+        document.getElementById('resultArea').style.display = 'block';
 
-        } catch (e) {
-            alert("عذراً، فشل جلب الرابط المختصر. تحقق من اتصالك بالإنترنت وحاول مجدداً.");
+        // توليد الـ QR Code العادي فوراً وبثبات كامل
+        const qrDiv = document.getElementById("qrcode");
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, {
+            text: finalShortLink,
+            width: 200,
+            height: 200,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.M
+        });
+    }
+
+    // محرك التوجيه الذكي والمحلي: يشتغل فوراً عند فتح أي رابط مختصر
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idParam = urlParams.get('id');
+        
+        if (idParam) {
+            const targetUrl = localStorage.getItem(idParam);
+            if (targetUrl) {
+                window.location.replace(targetUrl);
+            } else {
+                alert("عذراً، هذا الرابط غير مسجل في النظام المحلي لهذا الجهاز أو منتهي الصلاحية.");
+            }
         }
     }
 
     function copyLink() {
-        const text = document.getElementById('shortUrl').innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("تم نسخ الرابط المختصر بنجاح!");
-        });
+        navigator.clipboard.writeText(document.getElementById('shortUrl').innerText);
+        alert("تم نسخ الرابط بنجاح!");
     }
 
     function downloadQR() {
@@ -168,17 +177,12 @@
         if (img) {
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = 'QR_Code.png';
-            document.body.appendChild(link);
+            link.download = 'QR_Code_Private.png';
             link.click();
-            document.body.removeChild(link);
-        } else {
-            alert("يرجى توليد الرمز أولاً");
         }
     }
 
-    // كود الارتباط الشرطي لحماية الملكية الفكرية في الكونسول
-    console.log("الملكية الفكرية: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
+    console.log("الارتباط الشرطي وحماية الملكية: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
 </script>
 
 </body>
