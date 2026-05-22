@@ -3,59 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختصر الروابط والـ QR المستقر</title>
+    <title>مختصر الروابط والـ QR الذكي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --matte-red: #c0392b;
+            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد */
             --bg-color: #f8fafc;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg-color);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0;
         }
+
         .container {
-            background: white; padding: 2.5rem; border-radius: 20px;
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-            width: 90%; max-width: 400px; text-align: center;
+            width: 90%; 
+            max-width: 400px; 
+            text-align: center;
         }
-        input {
-            width: 100%; padding: 14px; border: 2px solid #e2e8f0;
-            border-radius: 10px; margin-bottom: 20px; font-size: 1rem;
-            text-align: left; direction: ltr; outline: none; box-sizing: border-box;
+
+        input, select {
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #e2e8f0;
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
         }
+
+        input { text-align: left; direction: ltr; }
+        select { text-align: right; direction: rtl; background: white; }
+
         .btn {
-            background: var(--primary-blue); color: white; border: none;
-            padding: 14px; border-radius: 10px; cursor: pointer;
-            width: 100%; font-weight: bold; font-size: 1rem; margin-bottom: 10px;
+            background: var(--primary-blue); 
+            color: white; 
+            border: none;
+            padding: 14px; 
+            border-radius: 10px; 
+            cursor: pointer;
+            width: 100%; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            margin-bottom: 10px;
             transition: background 0.3s ease;
         }
-        #resultArea { margin-top: 25px; display: none; }
-        #qrcode { display: flex; justify-content: center; margin: 20px 0; }
-        #qrcode img { border: 1px solid #e2e8f0; padding: 8px; border-radius: 8px; }
-        .short-url-text { margin: 15px 0; font-weight: bold; color: #2563eb; font-size: 1rem; word-break: break-all; direction: ltr; text-align: left; }
-        .signature { margin-top: 25px; font-weight: bold; color: var(--matte-red); font-size: 0.9rem; }
+        .btn:hover { background: #0a3c8c; }
+
+        .result-box { margin-top: 25px; display: none; }
+
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+            margin: 20px 0;
+        }
+        #qrcode img {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .short-url-text {
+            margin: 15px 0; 
+            font-weight: bold; 
+            color: #2563eb; 
+            font-size: 1rem; 
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .signature {
+            margin-top: 25px; 
+            font-weight: bold; 
+            color: var(--matte-red);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>مختصر الروابط الخاص المستقر 🔗</h2>
-    <p style="color: #64748b; margin-bottom: 25px;">ثانوية الأمير عبدالمجيد</p>
+    <h2>مختصر روابط القدرات والـ QR 🔗</h2>
+    <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">ثانوية الأمير عبدالمجيد</p>
 
-    <input type="url" id="longUrl" placeholder="ضع الرابط الطويل هنا..." required>
-    <button class="btn" onclick="shortenLocal()">اختصار وتوليد الرمز</button>
+    <select id="sectionSelect">
+        <option value="reading">استيعاب المقروء</option>
+        <option value="analogy">التناظر اللفظي</option>
+        <option value="completion">إكمال الجمل</option>
+        <option value="error">الخطأ السياقي</option>
+    </select>
 
-    <div id="resultArea">
+    <input type="number" id="modelNumber" placeholder="رقم النموذج (مثال: 4)" min="1" required>
+
+    <button class="btn" onclick="buildShortLink()">إنشاء الرابط القصير والـ QR</button>
+
+    <div id="resultArea" class="result-box">
         <div id="qrcode"></div>
         <div id="shortUrl" class="short-url-text"></div>
         
-        <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط</button>
-        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">حفظ الرمز</button>
+        <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط المختصر</button>
+        <button class="btn" style="background:#4b5563;" onclick="downloadQR()">حفظ صورة الرمز</button>
     </div>
 
     <div class="signature">
@@ -64,27 +124,28 @@
 </div>
 
 <script>
-    // توليد معرف قصير وبسيط جداً (أرقام وحروف خفيفة)
-    function generateSimpleId() {
-        return Math.random().toString(36).substring(2, 6);
-    }
+    // جدول التوجيه الثابت والآمن الخاص بك (ضع روابط ملفاتك الحقيقية هنا)
+    const routes = {
+        "reading_4": "https://school1school2-stack.github.io/ABO-TAIF/reading4.html",
+        "reading_5": "https://school1school2-stack.github.io/ABO-TAIF/reading5.html",
+        "analogy_1": "https://school1school2-stack.github.io/ABO-TAIF/analogy1.html"
+    };
 
-    function shortenLocal() {
-        const urlInput = document.getElementById('longUrl').value.trim();
-        if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
-
-        const shortId = generateSimpleId();
-        const currentUrl = window.location.href.split('?')[0];
+    function buildShortLink() {
+        const section = document.getElementById('sectionSelect').value;
+        const model = document.getElementById('modelNumber').value.trim();
         
-        // الرابط الناتج قصير جداً ونظيف تماماً بدون أي رموز غريبة
-        const finalShortLink = `${currentUrl}?id=${shortId}`;
+        if (!model) return alert("فضلاً أدخل رقم النموذج أولاً");
 
-        // تخزين الرابط في الذاكرة السحابية للمتصفح الحالي للتجربة الفورية والمباشرة
-        localStorage.setItem(shortId, urlInput);
+        const currentUrl = window.location.href.split('?')[0];
+        // الرابط الناتج قصير جداً ونظيف ونظامي تماماً
+        const finalShortLink = `${currentUrl}?sec=${section}&mod=${model}`;
 
+        // إظهار صندوق النتائج فوراً بدون تأخير
         document.getElementById('shortUrl').innerText = finalShortLink;
         document.getElementById('resultArea').style.display = 'block';
 
+        // رسم الـ QR الكلاسيكي فوراً وبثبات مطلق
         const qrDiv = document.getElementById("qrcode");
         qrDiv.innerHTML = "";
         new QRCode(qrDiv, {
@@ -97,25 +158,29 @@
         });
     }
 
-    // محرك التوجيه الفوري: يقرأ المعرف البسيط ويوجه فوراً بدون أي تعليق
+    // محرك التوجيه الفوري الآمن: يقرأ النموذج والـ QR ويوجه الطالب فورا بدون تعليق
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id');
+        const sec = urlParams.get('sec');
+        const mod = urlParams.get('mod');
         
-        if (idParam) {
-            const targetUrl = localStorage.getItem(idParam);
-            if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
-                window.location.replace(targetUrl);
+        if (sec && mod) {
+            const routeKey = `${sec}_${mod}`;
+            const destination = routes[routeKey];
+            
+            if (destination) {
+                window.location.replace(destination);
             } else {
-                // إذا لم يجد الرابط محلياً، يوجه لصفحة بملء الرابط احتياطياً
-                console.log("جاري البحث عن الرابط...");
+                // إذا لم يجد الرابط المعين، يمكنك كتابة رسالة توضيحية أو تركه يفتح الصفحة الأساسية
+                alert("جاري تجهيز هذا النموذج في الحقيبة وسيفتح قريباً بإذن الله.");
+                window.location.replace(window.location.href.split('?')[0]);
             }
         }
     }
 
     function copyLink() {
         navigator.clipboard.writeText(document.getElementById('shortUrl').innerText);
-        alert("تم النسخ بنجاح!");
+        alert("تم نسخ الرابط المختصر بنجاح!");
     }
 
     function downloadQR() {
@@ -123,7 +188,7 @@
         if (img) {
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = 'QR_Code.png';
+            link.download = 'QR_Code_Valid.png';
             link.click();
         }
     }
