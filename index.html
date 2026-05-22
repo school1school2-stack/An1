@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مختصر الروابط والـ QR الذكي</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --matte-red: #c0392b; /* اللون الأحمر المطفي المعتمد */
+            --school-red: #ba0000; /* اللون الأحمر الموحد بالموقع */
             --bg-color: #f8fafc;
         }
 
@@ -33,19 +32,18 @@
             text-align: center;
         }
 
-        input, select {
+        input {
             width: 100%; 
             padding: 14px; 
             border: 2px solid #e2e8f0;
             border-radius: 10px; 
             margin-bottom: 20px; 
             font-size: 1rem;
+            text-align: left; 
+            direction: ltr; 
             outline: none;
             box-sizing: border-box;
         }
-
-        input { text-align: left; direction: ltr; }
-        select { text-align: right; direction: rtl; background: white; }
 
         .btn {
             background: var(--primary-blue); 
@@ -62,17 +60,24 @@
         }
         .btn:hover { background: #0a3c8c; }
 
-        .result-box { margin-top: 25px; display: none; }
-
-        #qrcode { 
-            display: flex; 
-            justify-content: center; 
-            margin: 20px 0;
+        #resultArea { 
+            margin-top: 25px; 
+            display: none; 
         }
-        #qrcode img {
+
+        .qr-box {
+            margin: 20px 0;
+            padding: 10px;
+            display: inline-block;
+            background: white;
             border: 1px solid #e2e8f0;
-            padding: 8px;
-            border-radius: 8px;
+            border-radius: 12px;
+        }
+
+        .qr-box img {
+            display: block;
+            width: 200px;
+            height: 200px;
         }
 
         .short-url-text {
@@ -88,7 +93,7 @@
         .signature {
             margin-top: 25px; 
             font-weight: bold; 
-            color: var(--matte-red);
+            color: var(--school-red);
             font-size: 0.9rem;
         }
     </style>
@@ -96,22 +101,17 @@
 <body>
 
 <div class="container">
-    <h2>مختصر روابط القدرات والـ QR 🔗</h2>
+    <h2>مختصر الروابط والـ QR الذكي 🔗</h2>
     <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">ثانوية الأمير عبدالمجيد</p>
 
-    <select id="sectionSelect">
-        <option value="reading">استيعاب المقروء</option>
-        <option value="analogy">التناظر اللفظي</option>
-        <option value="completion">إكمال الجمل</option>
-        <option value="error">الخطأ السياقي</option>
-    </select>
+    <input type="url" id="longUrl" placeholder="ضع الرابط الطويل هنا..." required>
+    <button class="btn" onclick="processShortener()">اختصار وتوليد الرمز فوراً</button>
 
-    <input type="number" id="modelNumber" placeholder="رقم النموذج (مثال: 4)" min="1" required>
-
-    <button class="btn" onclick="buildShortLink()">إنشاء الرابط القصير والـ QR</button>
-
-    <div id="resultArea" class="result-box">
-        <div id="qrcode"></div>
+    <div id="resultArea">
+        <div class="qr-box">
+            <img id="qrImage" src="" alt="QR Code">
+        </div>
+        
         <div id="shortUrl" class="short-url-text"></div>
         
         <button class="btn" style="background:#10b981;" onclick="copyLink()">نسخ الرابط المختصر</button>
@@ -123,58 +123,50 @@
     </div>
 </div>
 
-<script>
-    // جدول التوجيه الثابت والآمن الخاص بك (ضع روابط ملفاتك الحقيقية هنا)
-    const routes = {
-        "reading_4": "https://school1school2-stack.github.io/ABO-TAIF/reading4.html",
-        "reading_5": "https://school1school2-stack.github.io/ABO-TAIF/reading5.html",
-        "analogy_1": "https://school1school2-stack.github.io/ABO-TAIF/analogy1.html"
-    };
-
-    function buildShortLink() {
-        const section = document.getElementById('sectionSelect').value;
-        const model = document.getElementById('modelNumber').value.trim();
-        
-        if (!model) return alert("فضلاً أدخل رقم النموذج أولاً");
-
-        const currentUrl = window.location.href.split('?')[0];
-        // الرابط الناتج قصير جداً ونظيف ونظامي تماماً
-        const finalShortLink = `${currentUrl}?sec=${section}&mod=${model}`;
-
-        // إظهار صندوق النتائج فوراً بدون تأخير
-        document.getElementById('shortUrl').innerText = finalShortLink;
-        document.getElementById('resultArea').style.display = 'block';
-
-        // رسم الـ QR الكلاسيكي فوراً وبثبات مطلق
-        const qrDiv = document.getElementById("qrcode");
-        qrDiv.innerHTML = "";
-        new QRCode(qrDiv, {
-            text: finalShortLink,
-            width: 200,
-            height: 200,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.M
-        });
-    }
-
-    // محرك التوجيه الفوري الآمن: يقرأ النموذج والـ QR ويوجه الطالب فورا بدون تعليق
+<script {id="protection-script"}>
+    // محرك التوجيه الفوري والثابت عند فتح الرابط من قبل الطلاب
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const sec = urlParams.get('sec');
-        const mod = urlParams.get('mod');
+        const encodedData = urlParams.get('go');
         
-        if (sec && mod) {
-            const routeKey = `${sec}_${mod}`;
-            const destination = routes[routeKey];
-            
-            if (destination) {
-                window.location.replace(destination);
-            } else {
-                // إذا لم يجد الرابط المعين، يمكنك كتابة رسالة توضيحية أو تركه يفتح الصفحة الأساسية
-                alert("جاري تجهيز هذا النموذج في الحقيبة وسيفتح قريباً بإذن الله.");
-                window.location.replace(window.location.href.split('?')[0]);
+        if (encodedData) {
+            try {
+                // فك التشفير الآمن للنصوص العربية والرموز بدون تعليق المتصفح
+                const targetUrl = decodeURIComponent(escape(atob(encodedData)));
+                if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+                    window.location.replace(targetUrl);
+                }
+            } catch (e) {
+                console.error("خطأ في قراءة مسار التوجيه.");
             }
+        }
+    }
+
+    function processShortener() {
+        const urlInput = document.getElementById('longUrl').value.trim();
+        if (!urlInput) return alert("فضلاً ضع الرابط أولاً");
+
+        try {
+            // تحويل الرابط إلى كود رقمي آمن وقصير جداً متوافق مع معايير الروابط
+            const safeBase64 = btoa(unescape(encodeURIComponent(urlInput)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+            
+            const currentBase = window.location.href.split('?')[0];
+            const finalShortLink = `${currentBase}?go=${safeBase64}`;
+
+            // تحديث رابط الصورة مباشرة من محرك جوجل لضمان عدم حدوث تعليق نهائياً
+            const googleQrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(finalShortLink)}&choe=UTF-8`;
+            
+            document.getElementById('qrImage').src = googleQrUrl;
+            document.getElementById('shortUrl').innerText = finalShortLink;
+            
+            // إظهار النتائج فوراً
+            document.getElementById('resultArea').style.display = 'block';
+
+        } catch (e) {
+            alert("حدث خطأ أثناء المعالجة، يرجى التحقق من الرابط.");
         }
     }
 
@@ -183,17 +175,29 @@
         alert("تم نسخ الرابط المختصر بنجاح!");
     }
 
-    function downloadQR() {
-        const img = document.querySelector('#qrcode img');
-        if (img) {
+    async function downloadQR() {
+        const qrImg = document.getElementById('qrImage');
+        if (!qrImg.src) return;
+        try {
+            // جلب الصورة وتحويلها لملف قابل للتحميل المباشر بالجوال
+            const response = await fetch(qrImg.src);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            
             const link = document.createElement('a');
-            link.href = img.src;
-            link.download = 'QR_Code_Valid.png';
+            link.href = blobUrl;
+            link.download = 'Majeed_School_QR.png';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        } catch (e) {
+            alert("اضغط مطولاً على صورة الرمز لحفظها في ألبوم الكاميرا.");
         }
     }
 
-    console.log("الارتباط الشرطي وحماية الملكية: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
+    // ارتباط شرطي لحماية الملكية الفكرية
+    console.log("برمجة وتصميم: أ/ عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد");
 </script>
 
 </body>
